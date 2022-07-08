@@ -1,6 +1,24 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const initialState = { user: 'Busettttt', balance: 50000 }
+const initialState = {
+    user: {
+        "id": 0,
+        "email": "",
+        "first_name": "J",
+        "last_name": "",
+        "avatar": ""
+    }, balance: 50000 }
+
+export const userAsync = createAsyncThunk(
+    'wallet/fetchUser',
+    async (id) => {
+        const response = await axios.get(`https://reqres.in/api/users/${id}`);
+        console.log(response)
+        return response.data.data;
+    }
+);
+
 const walletSlice = createSlice({
     name: "wallet",
     initialState: initialState,
@@ -13,6 +31,18 @@ const walletSlice = createSlice({
         deposit: (state, action) => {
             state.balance += action.payload.amount;
         },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(userAsync.fulfilled, (state, action) => {
+                state.user = action.payload;
+            })
+            .addCase(userAsync.pending, (state, action) => {
+                state.user = 'loading';
+            })
+            .addCase(userAsync.rejected, (state, action) => {
+                console.log(state)
+            })
     }
 });
 
